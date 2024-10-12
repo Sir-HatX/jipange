@@ -1,0 +1,24 @@
+App Design:
+- Budget:
+  - Name i.e Oct 2024 Budget
+  - start_date
+  - end_date
+  - total_income
+  - allocation_rule i.e Needs 50%, Wants 20%, Saving 30%
+  - status i.e open | closed
+  - Budgeted items:
+    - Name i.e Transport
+    - Description
+    - Amount i.e 2000
+    - Category i.e Want
+    - Tags
+
+- Expenses:
+  - Description
+  - amount
+  - trx_type [cash | mpesa | bank]
+  - budgeted_item_id
+  - trx date
+  - trx_charges
+  - Tags
+
