@@ -1,9 +1,9 @@
-App Design:
+API Design:
 - Budget:
   - Name i.e Oct 2024 Budget
   - start_date
   - end_date
-  - total_income
+  - total_amount
   - allocation_rule i.e Needs 50%, Wants 20%, Saving 30%
   - status i.e open | closed
   - Budgeted items:
@@ -22,3 +22,14 @@ App Design:
   - trx_charges
   - Tags
 
+- Accounts:
+  - Account_name
+  - Account_type
+  - Account_balance
+  
+- Transaction:
+  - source_account
+  - destination_account
+  - amount
+  - trx_cost
+  - trx_date

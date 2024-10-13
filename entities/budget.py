@@ -9,10 +9,12 @@ class Budget:
         self.status = 'open'
         self.allocation_rule = allocation_rule
 
-        def 
+    def add_budgeted_item(self,name:str, description:str, amount: float, category:str, tags[]):
+        item = BudgetedItem(name, description, amount, category, tags)
+        self.budgeted_items.append(item)
+        return item
+    
 
-        if sum(allocation_rule.values()) != 100:
-            raise ValueError("Allocation rule percentages must add up to 100")
-        
-    def add_expense(self, expense):
-        if expense.amount <= self.get_remaining_balance()
+
+
+Budget.add_budgeted_item(description="Rent", amount=1200, category="needs")
