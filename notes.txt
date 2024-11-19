@@ -1,26 +1,43 @@
 API Design:
 - Budget:
+  - budget id
   - Name i.e Oct 2024 Budget
   - start_date
   - end_date
-  - total_amount
+  - budget_allocated_amount
+  - unbudgeted_amount
   - allocation_rule i.e Needs 50%, Wants 20%, Saving 30%
-  - status i.e open | closed
+  - status i.e open | closed | archived
+  ---------------------------------------
+  - Methods for class Budget:
+    - Check if the end_date is > start_date
+    - Check the status of the budget
+    - Calculate total budgeted amount
+    - Calculate unbudgeted amount
+    - Duplicating a budget
+    - reallocation of unconsumed budgeted amounts from one budgeted_items to another
+  ---------------------------------------
   - Budgeted items:
+    - item id
     - Name i.e Transport
     - Description
     - Amount i.e 2000
     - Category i.e Want
     - Tags
+    -------------------------------------
+    - Methods for class Budget items:
+      - Ensuring the item is valid (has the above items)
+      - Creates a valid item object
+      - Allow update, delete,
 
-- Expenses:
-  - Description
-  - amount
-  - trx_type [cash | mpesa | bank]
-  - budgeted_item_id
-  - trx date
-  - trx_charges
-  - Tags
+  - Expenses:
+    - Description
+    - amount
+    - trx_type [cash | mpesa | bank]
+    - budgeted_item_id
+    - trx date
+    - trx_charges
+    - Tags
 
 - Accounts:
   - Account_name
