@@ -2,6 +2,8 @@ from typing import List, Dict
 from datetime import date
 import uuid
 
+from jipange.entities.BudgetedItem import BudgetedItem
+
 class Budget:
     """
     Represents a financial budget over a specified time frame with allocation rules.
