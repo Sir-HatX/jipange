@@ -1,35 +1,31 @@
+from entities.Budget import Budget
 from datetime import date
-from entity.Budget import Budget  # Import the Budget class
-from entity.BudgetedItem import BudgetedItem  # Import the BudgetedItem class
 
-# Define allocation rule: Needs 50%, Wants 20%, Savings 30%
-allocation_rule = {"Needs": 50, "Wants": 20, "Savings": 30}
-
-# Create a new budget
-oct_budget = Budget(
+# Create a Budget instance
+budget = Budget(
+    budget_id="BUDGET123",
     name="October 2024 Budget",
     start_date=date(2024, 10, 1),
-    end_date=date(2024, 10, 31),
-    budget_allocated_amount=2000,
-    allocation_rule=allocation_rule
+    end_date=date(2024, 10, 20),
+    budget_allocated_amount=1000.0,
+    allocation_rule={"Needs": 50, "Wants": 30, "Savings": 20},
+    status="draft"
 )
 
-# Add budgeted items
-item1 = BudgetedItem(name="Rent", description="Monthly rent payment", amount=1000, category="Needs")
-item2 = BudgetedItem(name="Groceries", description="Food and essentials", amount=300, category="Needs")
-item3 = BudgetedItem(name="Entertainment", description="Movies and games", amount=200, category="Wants")
+# budget.budget_id = "nwiegnm49ngmin395"
 
-oct_budget.add_budgeted_item(item1)
-oct_budget.add_budgeted_item(item2)
-oct_budget.add_budgeted_item(item3)
+# Print the budget object
+print(budget)
 
-# Print budget details
-print(oct_budget)
+# Update the status and print
+# budget.update_status("approved")
+print("Updated Status:", budget.status)
 
-# Calculate totals
-print("Total Budgeted Amount:", oct_budget.calculate_total_budgeted_amount())
-print("Unbudgeted Amount:", oct_budget.calculate_unbudgeted_amount())
+# Update the status of the budget
+# budget.update_status("canceled")
+# print("Updated Status:", budget.status)
 
-# Duplicate the budget
-duplicate_budget = oct_budget.duplicate_budget()
-print("Duplicated Budget:", duplicate_budget)
+# Example budgeted items
+budgeted_items = {"Rent": 400, "Groceries": 700, "Entertainment": 150}
+print("Total Budgeted Amount:", budget.calculate_total_budgeted_amount(budgeted_items))
+print("Unbudgeted Amount:", budget.calculate_unbudgeted_amount(budgeted_items))

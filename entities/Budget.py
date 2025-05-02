@@ -1,110 +1,136 @@
-from typing import List, Dict
-from datetime import date
-import uuid
-
-from jipange.entities.BudgetedItem import BudgetedItem
+from datetime import date, datetime
 
 class Budget:
-    """
-    Represents a financial budget over a specified time frame with allocation rules.
-    """
-    STATUS_OPEN = "open"
-    STATUS_CLOSED = "closed"
-    STATUS_ARCHIVED = "archived"
+    __slots__ = ("_budget_id", "_name", "_start_date", "_end_date", "_budget_allocated_amount", "_allocation_rule", "_status")
 
-    def __init__(self, name: str, start_date: date, end_date: date, 
-                 budget_allocated_amount: float, allocation_rule: Dict[str, float]):
-        self.budget_id = str(uuid.uuid4())  # Unique identifier for the budget
-        self.name = name
-        self.start_date = start_date
-        self.end_date = end_date
-        self.budget_allocated_amount = budget_allocated_amount
-        self.allocation_rule = allocation_rule  # e.g., {"Needs": 50, "Wants": 20, "Savings": 30}
-        self.status = self.STATUS_OPEN
-        self.budgeted_items: List[BudgetedItem] = []
+    def sanitize_name(self, name):
+        """Sanitizes the budget name."""
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("Budget name must be a non-empty string.")
+        return name.strip()
 
-        # Calculate initial unbudgeted amount
-        self.unbudgeted_amount = budget_allocated_amount
+    def __init__(self, budget_id, name, start_date, end_date, budget_allocated_amount, allocation_rule, status="draft"):
+        self._budget_id = budget_id
+        self._name = self.sanitize_name(name)
+        self._start_date = start_date
+        self._end_date = end_date
+        self._budget_allocated_amount = budget_allocated_amount
+        self._allocation_rule = allocation_rule
+        self._status = status
+        self.validate()
 
-        # Validate the date range
-        self.validate_dates()
+    def __setattr__(self, key, value):
+        """Restricts direct setting of attributes outside defined methods."""
+        if key in self.__slots__:
+            # Allow setting attributes directly during initialization
+            if not hasattr(self, key):  # Attribute does not exist, allow setting it
+                object.__setattr__(self, key, value)
+            elif key == "_status" and value in {"draft", "approved", "closed"}:
+                # Allow status to be set via update_status
+                object.__setattr__(self, key, value)
+            else:
+                raise AttributeError(f"Direct modification of '{key}' is not allowed. Use provided methods.")
+        else:
+            super().__setattr__(key, value)  # For attributes not in __slots__
 
-    def validate_dates(self):
-        """
-        Ensures the budget's start and end dates are valid.
-        """
-        if self.start_date >= self.end_date:
-            raise ValueError("start_date must be earlier than end_date.")
+    # Read-only properties
+    @property
+    def budget_id(self):
+        return self._budget_id
 
-    def check_status(self) -> str:
-        """
-        Returns the current status of the budget.
-        """
-        return self.status
+    @property
+    def name(self):
+        return self._name
 
-    def calculate_total_budgeted_amount(self) -> float:
-        """
-        Calculates the total amount allocated to budgeted items.
-        """
-        return sum(item.amount for item in self.budgeted_items)
+    @property
+    def start_date(self):
+        return self._start_date
 
-    def calculate_unbudgeted_amount(self) -> float:
-        """
-        Calculates the unbudgeted amount remaining.
-        """
-        self.unbudgeted_amount = self.budget_allocated_amount - self.calculate_total_budgeted_amount()
-        return self.unbudgeted_amount
+    @property
+    def end_date(self):
+        return self._end_date
 
-    def duplicate_budget(self) -> 'Budget':
-        """
-        Creates a duplicate of the current budget with a new ID and open status.
-        """
-        duplicated_budget = Budget(
-            name=f"{self.name} (Copy)",
-            start_date=self.start_date,
-            end_date=self.end_date,
-            budget_allocated_amount=self.budget_allocated_amount,
-            allocation_rule=self.allocation_rule
-        )
-        duplicated_budget.budgeted_items = [item for item in self.budgeted_items]
+    @property
+    def budget_allocated_amount(self):
+        return self._budget_allocated_amount
+
+    @property
+    def allocation_rule(self):
+        return self._allocation_rule
+
+    @property
+    def status(self):
+        return self._status
+
+
+    def validate(self):
+        if not isinstance(self._budget_id, str) or not self._budget_id.strip():
+            raise ValueError("Budget ID must be a valid non-empty string.")
+
+        if not isinstance(self._start_date, date) or not isinstance(self._end_date, date):
+            raise ValueError("Start and end dates must be valid date objects.")
+
+        if self._start_date >= self._end_date:
+            raise ValueError("End date must be greater than start date.")
+
+        if not isinstance(self._budget_allocated_amount, (int, float)) or self._budget_allocated_amount < 0:
+            raise ValueError("Allocated amount must be a positive number.")
+
+        if not isinstance(self._allocation_rule, dict):
+            raise ValueError("Allocation rule must be a dictionary.")
+        
+        if sum(self._allocation_rule.values()) != 100:
+            raise ValueError("Allocation rule percentages must sum to 100%.")
+
+        if self._status not in {"draft", "approved", "closed"}:
+            raise ValueError("Status must be 'draft', 'approved', or 'closed'.")
+        
+    # Methods to control updates
+    def update_status(self, new_status):
+        valid_statuses = {"draft", "approved", "closed"}
+        if new_status not in valid_statuses:
+            raise ValueError("Status must be 'draft', 'approved', or 'closed'.")
+        
+        # Allow changing status through the method, but ensure transitions are valid
+        if new_status == "closed" or datetime.now().date() > self.end_date:
+            self._status = "closed"
+        elif self._status == "draft" and new_status == "approved":
+            self._status = "approved"
+        elif self._status in {"draft", "approved"} and new_status == "draft":
+            self._status = "draft"
+        else:
+            raise ValueError(f"Invalid status transition from '{self._status}' to '{new_status}'.")
+
+    def calculate_total_budgeted_amount(self, budgeted_items):
+        """Calculates the total amount budgeted for items."""
+        if not isinstance(budgeted_items, dict):
+            raise ValueError("Budgeted items must be a dictionary of {item: amount}.")
+        return sum(budgeted_items.values())
+
+    def calculate_unbudgeted_amount(self, budgeted_items):
+        """Calculates the remaining amount that is not budgeted."""
+        total_budgeted = self.calculate_total_budgeted_amount(budgeted_items)
+        return max(0, self.budget_allocated_amount - total_budgeted)
+
+    def duplicate_budget(self, new_budget_id, new_name=None):
+        """Creates a duplicate of the budget with a new ID and optional name."""
+        duplicated_budget = deepcopy(self)
+        duplicated_budget.budget_id = new_budget_id
+        duplicated_budget.name = new_name or f"Copy of {self.name}"
         return duplicated_budget
 
-    def reallocate_budget(self, from_item_id: str, to_item_id: str, amount: float):
-        """
-        Reallocates a portion of the budgeted amount from one item to another.
-        """
-        from_item = next((item for item in self.budgeted_items if item.item_id == from_item_id), None)
-        to_item = next((item for item in self.budgeted_items if item.item_id == to_item_id), None)
-
-        if not from_item or not to_item:
-            raise ValueError("Invalid item IDs for reallocation.")
-        if from_item.amount < amount:
-            raise ValueError("Insufficient amount in the source item to reallocate.")
-        
-        # Reallocate the budget
-        from_item.amount -= amount
-        to_item.amount += amount
-
-    def add_budgeted_item(self, item: BudgetedItem):
-        """
-        Adds a new budgeted item to the budget.
-        """
-        if self.status != self.STATUS_OPEN:
-            raise ValueError("Cannot add items to a closed or archived budget.")
-        if self.unbudgeted_amount < item.amount:
-            raise ValueError("Not enough unbudgeted amount available to allocate.")
-        self.budgeted_items.append(item)
-        self.calculate_unbudgeted_amount()
-
-    def delete_budgeted_item(self, item_id: str):
-        """
-        Deletes a budgeted item by ID.
-        """
-        self.budgeted_items = [item for item in self.budgeted_items if item.item_id != item_id]
-        self.calculate_unbudgeted_amount()
+    def reallocate_budget(self, budgeted_items, source_item, target_item, amount):
+        """Reallocates a specified amount from one budget item to another."""
+        if source_item not in budgeted_items or target_item not in budgeted_items:
+            raise ValueError("Both source and target items must exist in the budgeted items.")
+        if amount > budgeted_items[source_item]:
+            raise ValueError("Cannot reallocate more than the available amount in the source item.")
+        budgeted_items[source_item] -= amount
+        budgeted_items[target_item] += amount
+        return budgeted_items
 
     def __repr__(self):
-        return (f"Budget(budget_id='{self.budget_id}', name='{self.name}', start_date={self.start_date}, "
-                f"end_date={self.end_date}, budget_allocated_amount={self.budget_allocated_amount}, "
-                f"unbudgeted_amount={self.unbudgeted_amount}, status='{self.status}', "
-                f"items={len(self.budgeted_items)})")
+        return (f"Budget(budget_id='{self.budget_id}', name='{self.name}', "
+                f"start_date={self.start_date}, end_date={self.end_date}, "
+                f"allocated_amount={self.budget_allocated_amount}, "
+                f"allocation_rule={self.allocation_rule}, status='{self.status}')")

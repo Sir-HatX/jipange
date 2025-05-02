@@ -1,21 +1,33 @@
 API Design:
+- Entities:
+  - Budget
+  - Budgeted Item
+  - Account
+  - Expenses
+  - Transaction
+
 - Budget:
   - budget id
   - Name i.e Oct 2024 Budget
   - start_date
   - end_date
   - budget_allocated_amount
-  - unbudgeted_amount
-  - allocation_rule i.e Needs 50%, Wants 20%, Saving 30%
+  - allocation_rule i.e Needs 50%, Wants 30%, Saving 20%
   - status i.e open | closed | archived
   ---------------------------------------
   - Methods for class Budget:
-    - Check if the end_date is > start_date
-    - Check the status of the budget
-    - Calculate total budgeted amount
-    - Calculate unbudgeted amount
-    - Duplicating a budget
-    - reallocation of unconsumed budgeted amounts from one budgeted_items to another
+    - Validation:
+      - sanitize Name
+      - has a valid id
+      - End date must be greater than start date
+      - budget_allocated_amount should >= Account totals
+      - the allocation_rule = 100%
+
+    - Exposed methods:
+      - Calculate total budgeted amount
+      - Calculate unbudgeted amount
+      - Duplicating a budget
+      - reallocation of unconsumed budgeted amounts from one budgeted_items to another
   ---------------------------------------
   - Budgeted items:
     - item id
