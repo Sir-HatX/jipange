@@ -12,8 +12,6 @@ budget = Budget(
     status="draft"
 )
 
-# budget.budget_id = "nwiegnm49ngmin395"
-
 # Print the budget object
 print(budget)
 
