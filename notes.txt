@@ -1,0 +1,64 @@
+API Design:
+- Entities:
+  - Budget
+  - Budgeted Item
+  - Account
+  - Expenses
+  - Transaction
+
+- Budget:
+  - budget id
+  - Name i.e Oct 2024 Budget
+  - start_date
+  - end_date
+  - budget_allocated_amount
+  - allocation_rule i.e Needs 50%, Wants 30%, Saving 20%
+  - status i.e open | closed | archived
+  ---------------------------------------
+  - Methods for class Budget:
+    - Validation:
+      - sanitize Name
+      - has a valid id
+      - End date must be greater than start date
+      - budget_allocated_amount should >= Account totals
+      - the allocation_rule = 100%
+
+    - Exposed methods:
+      - Calculate total budgeted amount
+      - Calculate unbudgeted amount
+      - Duplicating a budget
+      - reallocation of unconsumed budgeted amounts from one budgeted_items to another
+  ---------------------------------------
+  - Budgeted items:
+    - item id
+    - Name i.e Transport
+    - Description
+    - Amount i.e 2000
+    - Category i.e Want
+    - Tags
+    -------------------------------------
+    - Methods for class Budget items:
+      - Ensuring the item is valid (has the above items)
+      - Creates a valid item object
+      - Allow update, delete,
+
+  - Expenses:
+    - Description
+    - amount
+    - trx_type [cash | mpesa | bank]
+    - budgeted_item_id
+    - trx date
+    - trx_charges
+    - Tags
+
+- Accounts:
+  - Account_name
+  - Account_type
+  - Account_balance
+  
+- Transaction:
+  - source_account
+  - destination_account
+  - amount
+  - trx_cost
+  - trx_date
