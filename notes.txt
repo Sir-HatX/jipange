@@ -5,7 +5,8 @@ API Design:
   - Account
   - Expenses
   - Transaction
-
+------------------------------------------
+------------------------------------------
 - Budget:
   - budget id
   - Name i.e Oct 2024 Budget
@@ -27,20 +28,22 @@ API Design:
       - Calculate total budgeted amount
       - Calculate unbudgeted amount
       - Duplicating a budget
+      - Updating budget status
       - reallocation of unconsumed budgeted amounts from one budgeted_items to another
-  ---------------------------------------
-  - Budgeted items:
-    - item id
-    - Name i.e Transport
-    - Description
-    - Amount i.e 2000
-    - Category i.e Want
-    - Tags
-    -------------------------------------
-    - Methods for class Budget items:
-      - Ensuring the item is valid (has the above items)
-      - Creates a valid item object
-      - Allow update, delete,
+---------------------------------------
+---------------------------------------
+- Budgeted items:
+  - item id
+  - Name i.e Transport
+  - Description
+  - Amount i.e 2000
+  - Category i.e Want
+  - Tags
+  -------------------------------------
+  - Methods for class Budget items:
+    - Ensuring the item is valid (has the above items)
+    - Creates a valid item object
+    - Allow update, delete,
 
   - Expenses:
     - Description

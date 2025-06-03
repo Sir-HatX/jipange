@@ -12,7 +12,6 @@ class BudgetedItem:
         self.amount = amount
         self.category = category  # e.g., "Needs", "Wants", "Savings"
         self.tags = tags if tags else []
-
         # Validate item attributes during creation
         self.validate_item()
 
@@ -38,12 +37,20 @@ class BudgetedItem:
                 raise ValueError("Amount must be greater than 0.")
             self.amount = amount
         if category:
+            if category == "":
+                raise ValueError("Category cannot be empty.")
+            if not isinstance(category, str):
+                raise ValueError("Category must be a string.")
+            if not category.isalpha():
+                raise ValueError("Category must contain only alphabetic characters.")
+            if len(category) > 50:
+                raise ValueError("Category must be less than 50 characters long.")
             self.category = category
         if tags:
             self.tags = tags
 
         # Validate updated attributes
-        self.validate_item()
+        self.validate_item()    
 
     def __repr__(self):
         return (f"BudgetedItem(item_id='{self.item_id}', name='{self.name}', description='{self.description}', "

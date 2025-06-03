@@ -92,7 +92,7 @@ class Budget:
             raise ValueError("Status must be 'draft', 'approved', or 'closed'.")
         
         # Allow changing status through the method, but ensure transitions are valid
-        if new_status == "closed" or datetime.now().date() > self.end_date:
+        if new_status == "closed" and datetime.now().date() > self.end_date:
             self._status = "closed"
         elif self._status == "draft" and new_status == "approved":
             self._status = "approved"
