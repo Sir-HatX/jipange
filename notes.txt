@@ -65,3 +65,8 @@ API Design:
   - amount
   - trx_cost
   - trx_date
+
+- Users:
+  - username
+  - email
+  - password

@@ -1,15 +1,17 @@
 from datetime import date, datetime
+from ..enums import BudgetStatus
+from copy import deepcopy
 
 class Budget:
     __slots__ = ("_budget_id", "_name", "_start_date", "_end_date", "_budget_allocated_amount", "_allocation_rule", "_status")
 
-    def sanitize_name(self, name):
+    def sanitize_name(self, name: str) -> str:
         """Sanitizes the budget name."""
         if not isinstance(name, str) or not name.strip():
             raise ValueError("Budget name must be a non-empty string.")
         return name.strip()
 
-    def __init__(self, budget_id, name, start_date, end_date, budget_allocated_amount, allocation_rule, status="draft"):
+    def __init__(self, budget_id: str, name: str, start_date: date, end_date: date, budget_allocated_amount: float, allocation_rule: dict, status: BudgetStatus = BudgetStatus.DRAFT) -> None:
         self._budget_id = budget_id
         self._name = self.sanitize_name(name)
         self._start_date = start_date
@@ -25,7 +27,7 @@ class Budget:
             # Allow setting attributes directly during initialization
             if not hasattr(self, key):  # Attribute does not exist, allow setting it
                 object.__setattr__(self, key, value)
-            elif key == "_status" and value in {"draft", "approved", "closed"}:
+            elif key == "_status" and isinstance(value, BudgetStatus):
                 # Allow status to be set via update_status
                 object.__setattr__(self, key, value)
             else:
@@ -37,6 +39,12 @@ class Budget:
     @property
     def budget_id(self):
         return self._budget_id
+
+    @budget_id.setter
+    def budget_id(self, value):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("Budget ID must be a valid non-empty string.")
+        self._budget_id = value
 
     @property
     def name(self):
@@ -81,25 +89,41 @@ class Budget:
         
         if sum(self._allocation_rule.values()) != 100:
             raise ValueError("Allocation rule percentages must sum to 100%.")
-
-        if self._status not in {"draft", "approved", "closed"}:
-            raise ValueError("Status must be 'draft', 'approved', or 'closed'.")
+        
+        if not isinstance(self._status, BudgetStatus):
+            raise ValueError("Status must be an instance of BudgetStatus Enum.")
         
     # Methods to control updates
-    def update_status(self, new_status):
-        valid_statuses = {"draft", "approved", "closed"}
-        if new_status not in valid_statuses:
-            raise ValueError("Status must be 'draft', 'approved', or 'closed'.")
-        
+    
+    def update_status(self, new_status: BudgetStatus) -> None:
+        if not isinstance(new_status, BudgetStatus):
+            raise ValueError("Status must be an instance of BudgetStatus Enum.")
         # Allow changing status through the method, but ensure transitions are valid
-        if new_status == "closed" and datetime.now().date() > self.end_date:
-            self._status = "closed"
-        elif self._status == "draft" and new_status == "approved":
-            self._status = "approved"
-        elif self._status in {"draft", "approved"} and new_status == "draft":
-            self._status = "draft"
+        # Draft can move to pending approval only
+        # Pending approval can move to approved or rejected
+        # Approved can move to closed, adjusted, locked
+        # Adjusted can move to pending approval
+        # Closed can move to archived
+        # Locked can only be approved
+        valid_transitions = {
+            BudgetStatus.DRAFT: {BudgetStatus.PENDING_APPROVAL},
+            BudgetStatus.PENDING_APPROVAL: {BudgetStatus.APPROVED, BudgetStatus.REJECTED},
+            BudgetStatus.APPROVED: {BudgetStatus.CLOSED, BudgetStatus.ADJUSTED, BudgetStatus.LOCKED},
+            BudgetStatus.ADJUSTED: {BudgetStatus.PENDING_APPROVAL},
+            BudgetStatus.CLOSED: {BudgetStatus.ARCHIVED},
+            BudgetStatus.LOCKED: {BudgetStatus.APPROVED},
+        }
+
+        # Special case: allow closing if end_date has passed
+        if new_status == BudgetStatus.CLOSED and datetime.now().date() > self.end_date:
+            self._status = BudgetStatus.CLOSED
+            return
+
+        allowed = valid_transitions.get(self._status, set())
+        if new_status in allowed:
+            self._status = new_status
         else:
-            raise ValueError(f"Invalid status transition from '{self._status}' to '{new_status}'.")
+            raise ValueError(f"Invalid status transition from '{self._status.value}' to '{new_status.value}'.")
 
     def calculate_total_budgeted_amount(self, budgeted_items):
         """Calculates the total amount budgeted for items."""
@@ -133,4 +157,4 @@ class Budget:
         return (f"Budget(budget_id='{self.budget_id}', name='{self.name}', "
                 f"start_date={self.start_date}, end_date={self.end_date}, "
                 f"allocated_amount={self.budget_allocated_amount}, "
-                f"allocation_rule={self.allocation_rule}, status='{self.status}')")
+                f"allocation_rule={self.allocation_rule}, status='{self.status.value}')")
